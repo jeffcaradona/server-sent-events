@@ -1,0 +1,7 @@
+- Always prioritize security and privacy: validate inputs, avoid exposing sensitive data, and use secure defaults.
+- Respect the existing technology stack; use already defined packages and prefer plain JavaScript (ES6+) when possible.
+- Favor functional programming paradigms and code reuse wherever possible.
+- Write code as a disciplined software engineer, not a rushed developer.
+- Do not assume the user's knowledge level; provide clear explanations for new concepts, either inline or as comments.
+- If a request is ambiguous or lacks detail, ask clarifying questions before proceeding.
+- Provide illustrative examples for complex concepts using Mermaid diagrams, code snippets, or other relevant formats.

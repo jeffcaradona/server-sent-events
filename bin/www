@@ -9,6 +9,7 @@ import app, { shutdown } from '../src/app.js';
 import debugLib from 'debug';
 const debug = debugLib("server-sent-events:server");
 import http from 'http'
+import * as sseSendTimeController from '../src/controllers/sseSendTimeController.js';
 configDotenv();
 /**
  * Get port from environment and store in Express.
@@ -95,7 +96,11 @@ function onListening() {
 
 function handleShutdown() {
   if (typeof shutdown === 'function') shutdown();
-  process.exit(0);
+
+  // Wait 1000ms to allow events to flush, then exit
+  setTimeout(() => {
+    process.exit(0);
+  }, 1000); // Increased to 1000ms to ensure messages are sent
 }
 
 process.on('SIGTERM', handleShutdown);

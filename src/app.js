@@ -90,6 +90,11 @@ app.use(
 import router from "./routes/router.js";
 app.use(router);
 
+import sseRouter from './routes/sseRouter.js';
+import * as sseSendTimeController from './controllers/sseSendTimeController.js';
+
+app.use('/sse', sseRouter);
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
@@ -106,10 +111,14 @@ app.use(function (err, req, res, next) {
   res.render("error");
 });
 
-
+// Unified shutdown function
 export function shutdown() {
-  console.info("[APP] Shutting down gracefully...");
-  // Add other cleanup logic here if needed
+    // Notify SSE clients
+    if (typeof sseSendTimeController.broadcastShutdown === 'function') {
+      console.log("Broadcasting shutdown to SSE clients...");
+        sseSendTimeController.broadcastShutdown();
+    }
+    // Add other cleanup logic here if needed
 }
 
 export default app;

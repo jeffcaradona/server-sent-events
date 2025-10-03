@@ -7,7 +7,7 @@ import cookieParser from "cookie-parser";
 import session from "express-session";
 
 import morgan from "morgan";
-import logger from "./utils/logger.js"; // ⬅️ Your winston logger
+import logger from "./utils/logger.js"; // winston logger
 
 // Load environment variables (ensure this is done before using process.env)
 import { config as dotenvConfig } from "dotenv";
@@ -21,7 +21,7 @@ const __dirname = path.dirname(__filename);
 const info = JSON.parse(
   fs.readFileSync(path.join(__dirname, "../package.json"), "utf-8")
 );
-console.info(`[APP] info.name: ${info.name}, info.version: ${info.version}`);
+logger.info(`[APP] info.name: ${info.name}, info.version: ${info.version}`);
 
 const app = express();
 
@@ -71,11 +71,11 @@ app.use(
   "/js",
   express.static(path.join(__dirname, "../node_modules/axios/dist"))
 );
-
+/*
 app.use(
   "/js",
   express.static(path.join(__dirname, "../node_modules/jquery/dist"))
-);
+);*/
 app.use("/js", express.static(path.join(__dirname, "../node_modules/dayjs")));
 
 app.use(

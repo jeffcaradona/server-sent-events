@@ -113,13 +113,12 @@ app.use(function (err, req, res, next) {
 
 // Unified shutdown function
 export function shutdown() {
-  console.log("Shutdown initiated...");
+  logger.info("Shutdown initiated...");
   //TODO: Rewire for building ability to add shutdown tasks without modifying app.js
 
-  
-    // Notify SSE clients
-    if (typeof sseSendTimeController.broadcastShutdown === 'function') {
-      console.log("Broadcasting shutdown to SSE clients...");
+  // Notify SSE clients
+  if (typeof sseSendTimeController.broadcastShutdown === 'function') {
+    logger.warn("Broadcasting shutdown to SSE clients...");
         sseSendTimeController.broadcastShutdown();
     }
     // Add other cleanup logic here if needed

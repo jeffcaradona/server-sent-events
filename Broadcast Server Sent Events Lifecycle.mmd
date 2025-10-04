@@ -9,6 +9,11 @@ sequenceDiagram
     Browser->>EventSource: new EventSource(url)
     EventSource-->>Browser: onopen (connection established)
     Browser->>EventSource: Attach onmessage handler
-    EventSource-->>Browser: onmessage (data received)
-    EventSource-->>Browser: onerror (connection error)
+    loop While server is running
+        Express-->>EventSource: Send SSE message
+        EventSource-->>Browser: onmessage (data received)
+    end
+    Express-->>EventSource: Send "shutdown" event
+    EventSource-->>Browser: onmessage (shutdown event)
     Browser->>EventSource: close()
+    EventSource-->>Browser: onclose (connection closed)

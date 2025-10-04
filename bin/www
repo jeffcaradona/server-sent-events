@@ -9,7 +9,9 @@ import app, { shutdown } from '../src/app.js';
 import debugLib from 'debug';
 const debug = debugLib("server-sent-events:server");
 import http from 'http'
-import * as sseSendTimeController from '../src/controllers/sseSendTimeController.js';
+import logger from '../src/utils/logger.js'; // winston logger
+
+
 configDotenv();
 /**
  * Get port from environment and store in Express.
@@ -68,13 +70,13 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
+      logger.error(bind + ' requires elevated privileges');
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
+      logger.error(bind + ' is already in use');
       process.exit(1);
-      break;
+      break;  
     default:
       throw error;
   }

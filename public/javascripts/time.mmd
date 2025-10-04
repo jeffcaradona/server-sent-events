@@ -1,0 +1,8 @@
+flowchart TD
+    A[DOMContentLoaded] --> B[connect]
+    B --> C[createEventSource]
+    C --> D[attach handlers]
+    D --> E[onerror]
+    E --> F[circuitBreaker.recordFailure]
+    F -->|isOpen| G[wait resetTimeout, reconnect]
+    F -->|not open| H[wait short delay, reconnect]

@@ -1,13 +1,14 @@
 sequenceDiagram
     participant Browser
     participant Express
+    participant EventSource
     Browser->>Express: GET /time (HTML)
     Express-->>Browser: HTML + JS
     Browser->>Express: GET /javascripts/time.js
     Express-->>Browser: time.js
-    Browser->>Express: GET /sse/time (EventSource)
-    Express-->>Browser: SSE stream (UTC time)
-    loop Every second
-        Express-->>Browser: data: { utc }
-        Browser-->>Browser: onmessage handler logs times
-    end
+    Browser->>EventSource: new EventSource(url)
+    EventSource-->>Browser: onopen (connection established)
+    Browser->>EventSource: Attach onmessage handler
+    EventSource-->>Browser: onmessage (data received)
+    EventSource-->>Browser: onerror (connection error)
+    Browser->>EventSource: close()

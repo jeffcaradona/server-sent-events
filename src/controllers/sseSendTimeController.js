@@ -1,3 +1,5 @@
+import logger from "./../utils/logger.js"; // winston logger
+
 const clients = [];
 
 export const time = (req, res) => {

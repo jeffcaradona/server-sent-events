@@ -1,5 +1,5 @@
 # Base stage
-FROM node:18 AS base
+FROM node:22 AS base
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --production
@@ -9,7 +9,7 @@ COPY ./bin ./bin
 COPY ./public ./public
 
 # Production stage
-FROM node:18-slim
+FROM node:22-slim
 WORKDIR /app
 COPY --from=base /app /app
 CMD ["node", "./bin/www"]

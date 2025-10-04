@@ -9,7 +9,7 @@ import app, { shutdown } from '../src/app.js';
 import debugLib from 'debug';
 const debug = debugLib("server-sent-events:server");
 import http from 'http'
-import logger from '../src/utils/logger.js'; // winston logger
+import logger, { serverLogger } from '../src/utils/logger.js'; // winston logger
 
 
 configDotenv();
@@ -70,11 +70,11 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      logger.error(bind + ' requires elevated privileges');
+      serverLogger.error(bind + ' requires elevated privileges');
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      logger.error(bind + ' is already in use');
+      serverLogger.error(bind + ' is already in use');
       process.exit(1);
       break;  
     default:
@@ -94,15 +94,19 @@ function onListening() {
   const url = `http://localhost:${addr.port}`;
   debug('Listening on ' + bind);
   debug(`Server is running at ${url}`);
+  
+  // Add server startup log
+  serverLogger.info(`Server started and listening on ${url}`);
 }
 
-function handleShutdown() {
+async function handleShutdown() {
+  serverLogger.info("Received shutdown signal, cleaning up...");
   if (typeof shutdown === 'function') shutdown();
-
+  
   // Wait 1000ms to allow events to flush, then exit
   setTimeout(() => {
     process.exit(0);
-  }, 1000); // Increased to 1000ms to ensure messages are sent
+  }, 5000); // Increased to 5000ms to ensure messages are sent
 }
 
 process.on('SIGTERM', handleShutdown);

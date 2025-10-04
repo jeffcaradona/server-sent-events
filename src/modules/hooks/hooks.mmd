@@ -1,0 +1,37 @@
+flowchart TD
+    subgraph Factory
+        F_create["createHookRegistry"]
+        F_api["API register and runAll"]
+    end
+
+    subgraph Registries
+        R_shutdown["shutdownHooks"]
+        R_startup["startupHooks"]
+    end
+
+    subgraph Modules
+        M_sse["sseSendTimeController"]
+        M_other["otherModule"]
+    end
+
+    subgraph App
+        A_bin["bin/www signal handler"]
+        A_startup["app startup"]
+        A_shutdown["app shutdown"]
+    end
+
+    Note1["Hooks run sequentially. Errors are logged and do not stop remaining hooks."]
+
+    F_create --> F_api
+    F_api --> R_shutdown
+    F_api --> R_startup
+
+    M_sse -->|register| R_shutdown
+    M_other -->|register| R_startup
+
+    R_shutdown -->|runAll| A_shutdown
+    R_startup -->|runAll| A_startup
+
+    A_bin --> A_shutdown
+    A_startup --> Note1
+    A_shutdown --> Note1

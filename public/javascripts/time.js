@@ -1,94 +1,80 @@
 /**
- * time.js
- * Client-side JavaScript to handle Server-Sent Events (SSE) for time updates.
- * Refactored for better testability and maintainability.
+ * Functional time.js: SSE client with enhanced functional paradigms.
+ * - Dependencies are parameterized.
+ * - Pure functions return instructions/data, not performing side effects.
+ * - One top-level runner dispatches effects.
  */
 
+function createEventSourceFactory({ url }) {
+  return () => new EventSource(url);
+}
 
-
-/**
- * Pure function to create and configure an EventSource instance.
- * No side effects; returns a configured EventSource.
- * @param {string} url - The SSE endpoint URL.
- * @returns {EventSource}
- */
-const createEventSource = (url) => new EventSource(url);
-
-/**
- * Pure function to parse and validate SSE event data.
- * Returns an object with status and payload for further handling.
- */
-const parseSSEData = (event) => {
+// Returns a {status, payload} object
+function parseSSEData(event) {
   try {
     const data = JSON.parse(event.data);
-    if (typeof data !== 'object' || data === null) {
-      return { status: 'invalid', payload: null };
+    if (typeof data !== "object" || data === null) {
+      return { status: "invalid", payload: null };
     }
-    return { status: 'ok', payload: data };
+    return { status: "ok", payload: data };
   } catch (err) {
-    // Log the error for visibility and debugging
-    console.error("Failed to parse SSE event data:", err);
-    return { status: 'invalid', payload: null };
+    return { status: "invalid", payload: null, error: err };
   }
-};
+}
 
-/**
- * Pure function to handle parsed SSE time events.
- * All side effects (logging, closing connection) are isolated here.
- */
-const handleTimeEvent = (event) => {
-  const { status, payload } = parseSSEData(event);
-  if (status !== 'ok') {
-    console.error("Invalid event data received.");
-    return;
+// Returns an array of "effects" to perform, based on event data
+function getTimeEventEffects({ event, logger }) {
+  const { status, payload, error } = parseSSEData(event);
+
+  if (status !== "ok") {
+    return [
+      () => logger.error("Invalid event data received."),
+      ...(error ? [() => logger.error("Parse error:", error)] : []),
+    ];
   }
+
   switch (payload.type) {
-    case 'error':
-      console.error("Server error:", payload.message || "Unknown error");
-      break;
-    case 'shutdown':
-      console.log("Server is shutting down. Closing connection.");
-      event.target.close();
-      // Optionally, update UI to inform user
-      break;
+    case "error":
+      return [
+        () => logger.error("Server error:", payload.message || "Unknown error"),
+      ];
+    case "shutdown":
+      return [
+        () => logger.log("Server is shutting down. Closing connection."),
+        () => event.target.close(),
+      ];
     default:
       if (typeof payload.utc === "string") {
-        const local = new Date().toLocaleString();
-        console.log(`Server UTC: ${payload.utc} | Browser Local: ${local}`);
+        return [
+          () => {
+            const local = new Date().toLocaleString();
+            logger.log(`Server UTC: ${payload.utc} | Browser Local: ${local}`);
+          },
+        ];
       } else {
-        console.warn("Unexpected event data format:", payload);
+        return [() => logger.warn("Unexpected event data format:", payload)];
       }
   }
-};
+}
 
+// Wire up everything via dependency injection and effect dispatch
+function runSSEClient({ url, logger }) {
+  const createEventSource = createEventSourceFactory({ url });
 
-/**
- * Main entry point: initializes SSE connection and attaches handlers.
- * All side effects are isolated here.
- */
-const onReady = () => {
-  console.log("Initializing...");
+  const evtSource = createEventSource();
 
-  // Encapsulate connection logic for reuse
-  const connect = () => {
-    const evtSource = createEventSource("/sse/time");
-
-    evtSource.onmessage = handleTimeEvent;
-
-    evtSource.onopen = () => {
-      console.log("EventSource initialized and ready!");
-    };
-
-    evtSource.onerror = (err) => {
-      // Log error for visibility and debugging
-      console.error("Connection error or server offline.", err);
-      // No reconnection or circuit breaker logic
-    };
+  evtSource.onmessage = (event) => {
+    getTimeEventEffects({ event, logger }).forEach((effect) => effect());
   };
 
-  connect();
+  evtSource.onopen = () => logger.log("EventSource initialized and ready!");
+  evtSource.onerror = (err) =>
+    logger.error("Connection error or server offline.", err);
+}
 
-  console.log("Document is ready!");
-};
-
-document.addEventListener("DOMContentLoaded", onReady);
+document.addEventListener("DOMContentLoaded", () => {
+  runSSEClient({
+    url: "/sse/time",
+    logger: console, // inject a logger, could be swapped for testing
+  });
+});

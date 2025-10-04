@@ -4,22 +4,7 @@
  * Refactored for better testability and maintainability.
  */
 
-// Singleton EventSource factory
-const eventSourceSingletonFactory = (() => {
-  const sources = {};
-  return (url) => {
-    if (!sources[url]) {
-      sources[url] = new EventSource(url);
-    }
-    return sources[url];
-  };
-})();
-/*
-// Usage
-const es1 = eventSourceSingletonFactory('/events');
-const es2 = eventSourceSingletonFactory('/events'); // returns the same instance as es1
-const es3 = eventSourceSingletonFactory('/other-events'); // new instance
-*/
+
 
 /**
  * Pure function to create and configure an EventSource instance.

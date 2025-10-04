@@ -3,7 +3,7 @@
  * Client-side JavaScript to handle Server-Sent Events (SSE) for time updates.
  * Refactored for better testability and maintainability.
  */
-/*
+
 // Singleton EventSource factory
 const eventSourceSingletonFactory = (() => {
   const sources = {};
@@ -14,7 +14,7 @@ const eventSourceSingletonFactory = (() => {
     return sources[url];
   };
 })();
-
+/*
 // Usage
 const es1 = eventSourceSingletonFactory('/events');
 const es2 = eventSourceSingletonFactory('/events'); // returns the same instance as es1

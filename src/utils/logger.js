@@ -1,6 +1,6 @@
 // src/utils/logger.js
-import fs from 'fs';
-import path from 'path';
+import fs from "node:fs";
+import path from "node:path";
 import winston from 'winston';
 
 // Ensure logs directory exists

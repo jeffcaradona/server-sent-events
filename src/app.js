@@ -1,12 +1,12 @@
-import fs from "fs";
+import fs from "node:fs";
 import createError from "http-errors";
-import path from "path";
-import { fileURLToPath } from "url";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import express from "express";
 import cookieParser from "cookie-parser";
 import session from "express-session"; 
 import FileStoreFactory from "session-file-store";
-import crypto from "crypto"; // For generating secure random values
+import crypto from "node:crypto"; // For generating secure random values
 
 import morgan from "morgan";
 import logger, { morganStream } from "./utils/logger.js"; // winston logger

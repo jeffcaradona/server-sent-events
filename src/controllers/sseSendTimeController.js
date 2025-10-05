@@ -28,11 +28,19 @@ export const time = (req, res) => {
     });
 };
 
-// Export a function to broadcast shutdown
 export const broadcastShutdown = () => {
-    clients.forEach(res => {
+  logger.info(`Broadcasting shutdown to ${clients.length} clients...`);
+
+  for (const res of clients) {
+    if (!res.writableEnded) {
+      try {
         res.write(`data: ${JSON.stringify({ type: "shutdown" })}\n\n`);
         res.end();
-    });
-    clients.length = 0;
+      } catch (err) {
+        logger.warn(`Failed to shut down a client: ${err.message}`);
+      }
+    }
+  }
+
+  clients.length = 0;
 };

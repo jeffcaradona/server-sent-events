@@ -1,25 +1,10 @@
-/**
- * Functional time.js: SSE client for time events
- * - Contains only time-specific event handling logic
- * - Uses generic SSE client for connection management
- */
 
-import { createSSEClient } from './sse-client.js';
+import { createSSEClient, parseSSEData } from "./sse-client.js";
 
-// Returns a {status, payload} object
-function parseSSEData(event) {
-  try {
-    const data = JSON.parse(event.data);
-    if (typeof data !== "object" || data === null) {
-      return { status: "invalid", payload: null };
-    }
-    return { status: "ok", payload: data };
-  } catch (err) {
-    return { status: "invalid", payload: null, error: err };
-  }
-}
 
-// Returns an array of "effects" to perform, based on time event data
+
+
+
 function getTimeEventEffects({ event, logger }) {
   const { status, payload, error } = parseSSEData(event);
 
@@ -55,11 +40,11 @@ function getTimeEventEffects({ event, logger }) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Create SSE client with time-specific event handler
+
   const client = createSSEClient({
     url: "/sse/time",
     logger: console,
-    eventHandler: getTimeEventEffects, // Pass the time-specific handler
+    eventHandler: getTimeEventEffects, 
   });
 
   // Set up cleanup

@@ -48,5 +48,18 @@ function createSSEClient({ url, logger, eventHandler }) {
   };
 }
 
+
+function parseSSEData(event) {
+  try {
+    const data = JSON.parse(event.data);
+    if (typeof data !== "object" || data === null) {
+      return { status: "invalid", payload: null };
+    }
+    return { status: "ok", payload: data };
+  } catch (err) {
+    return { status: "invalid", payload: null, error: err };
+  }
+}
+
 // Export the function for use in other modules
-export { createSSEClient };
+export { createSSEClient, parseSSEData };

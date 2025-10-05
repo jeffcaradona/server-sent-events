@@ -1,13 +1,10 @@
 /**
- * Functional time.js: SSE client with enhanced functional paradigms.
- * - Dependencies are parameterized.
- * - Pure functions return instructions/data, not performing side effects.
- * - One top-level runner dispatches effects.
+ * Functional time.js: SSE client for time events
+ * - Contains only time-specific event handling logic
+ * - Uses generic SSE client for connection management
  */
 
-function createEventSourceFactory({ url }) {
-  return () => new EventSource(url);
-}
+import { createSSEClient } from './sse-client.js';
 
 // Returns a {status, payload} object
 function parseSSEData(event) {
@@ -22,7 +19,7 @@ function parseSSEData(event) {
   }
 }
 
-// Returns an array of "effects" to perform, based on event data
+// Returns an array of "effects" to perform, based on time event data
 function getTimeEventEffects({ event, logger }) {
   const { status, payload, error } = parseSSEData(event);
 
@@ -57,24 +54,14 @@ function getTimeEventEffects({ event, logger }) {
   }
 }
 
-// Wire up everything via dependency injection and effect dispatch
-function runSSEClient({ url, logger }) {
-  const createEventSource = createEventSourceFactory({ url });
-
-  const evtSource = createEventSource();
-
-  evtSource.onmessage = (event) => {
-    getTimeEventEffects({ event, logger }).forEach((effect) => effect());
-  };
-
-  evtSource.onopen = () => logger.log("EventSource initialized and ready!");
-  evtSource.onerror = (err) =>
-    logger.error("Connection error or server offline.", err);
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-  runSSEClient({
+  // Create SSE client with time-specific event handler
+  const client = createSSEClient({
     url: "/sse/time",
-    logger: console, // inject a logger, could be swapped for testing
+    logger: console,
+    eventHandler: getTimeEventEffects, // Pass the time-specific handler
   });
+
+  // Set up cleanup
+  client.setupCleanup();
 });

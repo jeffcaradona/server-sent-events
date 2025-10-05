@@ -49,6 +49,14 @@ function createSSEClient({ url, logger, eventHandler }) {
 }
 
 
+/**
+ * Parses the data from an SSE (Server-Sent Events) event as JSON.
+ *
+ * @param {MessageEvent} event - The SSE event containing a JSON string in its `data` property.
+ * @returns {{status: "ok", payload: Object} | {status: "invalid", payload: null, error?: Error}}
+ *   Returns an object with status "ok" and the parsed payload if successful,
+ *   or status "invalid" and payload null (with error info) if parsing fails.
+ */
 function parseSSEData(event) {
   try {
     const data = JSON.parse(event.data);

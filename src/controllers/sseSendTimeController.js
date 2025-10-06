@@ -1,20 +1,44 @@
-import logger from "./../utils/logger.js"; // winston logger
+/**
+ * SSE Time Controller - Refactored for functional patterns
+ * 
+ * BEFORE REFACTORING:
+ * - Mixed concerns: SSE transport + time logic + client management
+ * - Global state mutations
+ * - Inline message formatting
+ * - Manual client array management
+ * 
+ * AFTER REFACTORING:
+ * - Pure functions for message creation
+ * - Functional client management interface  
+ * - Clear separation of concerns
+ * - Better logging and error handling
+ * 
+ * MAINTAINED COMPATIBILITY:
+ * - Same message format: { utc: "ISO_STRING" }
+ * - Same timing: 3-second intervals
+ * - Same SSE headers and wire protocol
+ */
 
-const clients = [];
+import logger from "./../utils/logger.js"; // winston logger
+import { 
+  setupSSEHeaders,        // Pure function - sets SSE headers
+  createSSEMessage,       // Pure function - formats SSE wire protocol
+  createTimeMessage,      // Pure function - creates time data
+  createShutdownMessage,  // Pure function - creates shutdown data
+  ClientManager           // Functional interface - manages client connections
+} from "./../modules/sse/sseHelper.js";
+import { MessageTypes } from "../models/index.js"; // Message type constants
 
 export const time = (req, res) => {
-    res.set({
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive'
-    });
-    res.flushHeaders();
+    setupSSEHeaders(res);
 
-    clients.push(res);
+    const clientCount = ClientManager.addClient(res);
+    logger.info(`SSE client connected. Total clients: ${clientCount}`);
 
     const sendTime = () => {
-        const utc = new Date().toISOString();
-        res.write(`data: ${JSON.stringify({ utc })}\n\n`);
+        // Pure function creates message - no side effects
+        const timeMessage = createTimeMessage();
+        res.write(createSSEMessage(timeMessage));
     };
 
     sendTime();
@@ -22,25 +46,24 @@ export const time = (req, res) => {
 
     req.on('close', () => {
         clearInterval(interval);
-        // Remove client from list on disconnect
-        const idx = clients.indexOf(res);
-        if (idx !== -1) clients.splice(idx, 1);
+        const remainingClients = ClientManager.removeClient(res);
+        logger.info(`SSE client disconnected. Remaining clients: ${remainingClients}`);
     });
 };
 
 export const broadcastShutdown = () => {
-  logger.info(`Broadcasting shutdown to ${clients.length} clients...`);
+  const clientCount = ClientManager.getClientCount();
+  logger.info(`Broadcasting shutdown to ${clientCount} clients...`);
 
-  for (const res of clients) {
-    if (!res.writableEnded) {
-      try {
-        res.write(`data: ${JSON.stringify({ type: "shutdown" })}\n\n`);
-        res.end();
-      } catch (err) {
-        logger.warn(`Failed to shut down a client: ${err.message}`);
-      }
-    }
-  }
-
-  clients.length = 0;
+  // Pure function creates shutdown message
+  const shutdownMessage = createShutdownMessage(MessageTypes.LEGACY_SHUTDOWN);
+  const sseMessage = createSSEMessage(shutdownMessage);
+  
+  // Functional broadcast with results
+  const results = ClientManager.broadcast(sseMessage, logger);
+  
+  logger.info(`Shutdown broadcast complete: ${results.successful} successful, ${results.failed} failed`);
+  
+  // End all remaining connections
+  ClientManager.broadcast('', { warn: () => {} }); // Silent cleanup
 };

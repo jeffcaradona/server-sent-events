@@ -29,16 +29,38 @@ import {
 } from "./../modules/sse/sseHelper.js";
 import { MessageTypes } from "../models/index.js"; // Message type constants
 
+// Safe logging helper to prevent crashes during shutdown
+const safeLog = (level, message) => {
+    try {
+        logger[level](message);
+    } catch (err) {
+        // Fallback to console if winston fails
+        console.log(`[${level.toUpperCase()}] ${message}`);
+    }
+};
+
 export const time = (req, res) => {
     setupSSEHeaders(res);
 
     const clientCount = ClientManager.addClient(res);
-    logger.info(`SSE client connected. Total clients: ${clientCount}`);
+    safeLog('info', `SSE client connected. Total clients: ${clientCount}`);
 
     const sendTime = () => {
-        // Pure function creates message - no side effects
-        const timeMessage = createTimeMessage();
-        res.write(createSSEMessage(timeMessage));
+        // Check if connection is still alive before writing
+        if (res.writableEnded || res.destroyed) {
+            clearInterval(interval);
+            return;
+        }
+        
+        try {
+            // Pure function creates message - no side effects
+            const timeMessage = createTimeMessage();
+            res.write(createSSEMessage(timeMessage));
+        } catch (err) {
+            safeLog('warn', `Failed to send time message: ${err.message}`);
+            clearInterval(interval);
+            ClientManager.removeClient(res);
+        }
     };
 
     sendTime();
@@ -46,24 +68,32 @@ export const time = (req, res) => {
 
     req.on('close', () => {
         clearInterval(interval);
+        
+        // Remove client first to prevent concurrent operations
         const remainingClients = ClientManager.removeClient(res);
-        logger.info(`SSE client disconnected. Remaining clients: ${remainingClients}`);
+        
+        // Safe logging with fallback
+        safeLog('info', `SSE client disconnected. Remaining clients: ${remainingClients}`);
     });
 };
 
 export const broadcastShutdown = () => {
   const clientCount = ClientManager.getClientCount();
-  logger.info(`Broadcasting shutdown to ${clientCount} clients...`);
+  safeLog('info', `Broadcasting shutdown to ${clientCount} clients...`);
 
   // Pure function creates shutdown message
   const shutdownMessage = createShutdownMessage(MessageTypes.LEGACY_SHUTDOWN);
   const sseMessage = createSSEMessage(shutdownMessage);
   
-  // Functional broadcast with results
-  const results = ClientManager.broadcast(sseMessage, logger);
+  // Functional broadcast with results - use safe logger
+  const safeLogger = {
+    warn: (msg) => safeLog('warn', msg),
+    info: (msg) => safeLog('info', msg)
+  };
+  const results = ClientManager.broadcast(sseMessage, safeLogger);
   
-  logger.info(`Shutdown broadcast complete: ${results.successful} successful, ${results.failed} failed`);
+  safeLog('info', `Shutdown broadcast complete: ${results.successful} successful, ${results.failed} failed`);
   
   // End all remaining connections
-  ClientManager.broadcast('', { warn: () => {} }); // Silent cleanup
+  ClientManager.broadcast('', { warn: () => {}, info: () => {} }); // Silent cleanup
 };

@@ -29,9 +29,9 @@ coverage/
 .nyc_output/
 
 # Test output
-test/
-tests/
-__tests__/
+# (Do NOT ignore source tests — remove `test/` so tests are committed)
+# If you need to ignore test runner artifacts, add a dedicated folder like test-results/
+# test/
 
 # OS metadata
 .DS_Store

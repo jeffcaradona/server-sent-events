@@ -96,12 +96,23 @@ function initResponse(res) {
  * @returns {string} clientId assigned
  */
 function addClient(arg1, maybeRes, maybeMeta) {
+  // Standardize meta shape for V8 optimization (monomorphic hidden class)
+  const standardizeMeta = (meta = {}) => ({
+    ip: meta.ip || null,
+    userId: meta.userId || null,
+    userAgent: meta.userAgent || null,
+  });
+
   // Backwards-compatibility: if first arg is a res object
   if (!maybeRes) {
     const res = arg1;
     // generate a fallback id (not cryptographically strong) to keep compatibility
     const clientId = `anon-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
-    clients.set(clientId, { res, meta: {}, createdAt: Date.now() });
+    clients.set(clientId, { 
+      res, 
+      meta: standardizeMeta({}), 
+      createdAt: Date.now() 
+    });
     resIndex.set(res, clientId);
 
     // Ensure we clean up if the connection closes. Use once so we don't
@@ -137,7 +148,11 @@ function addClient(arg1, maybeRes, maybeMeta) {
     clients.delete(existing);
   }
 
-  clients.set(clientId, { res, meta, createdAt: Date.now() });
+  clients.set(clientId, { 
+    res, 
+    meta: standardizeMeta(meta), 
+    createdAt: Date.now() 
+  });
   resIndex.set(res, clientId);
 
   try {
@@ -265,6 +280,36 @@ function safeSerialize(data) {
 }
 
 /**
+ * Format payload to SSE wire format (pure function, no I/O).
+ * V8 optimization: pure function, small, inlineable.
+ * @param {any} payload
+ * @returns {string} formatted SSE message
+ */
+function formatSSEMessage(payload) {
+  return `data: ${safeSerialize(payload)}\n\n`;
+}
+
+/**
+ * Write formatted message to a single client (isolated error handling).
+ * Returns true if write succeeded, false if client should be removed.
+ * 
+ * V8 optimization: try-catch is isolated here so broadcast() can be inlined.
+ * @param {import('http').ServerResponse} res
+ * @param {string} formattedMessage
+ * @returns {boolean}
+ */
+function writeToClient(res, formattedMessage) {
+  try {
+    if (res.writableEnded) return false;
+    res.write(formattedMessage);
+    return true;
+  } catch (err) {
+    logger.warn(`Failed to write to SSE client: ${err.message}`);
+    return false;
+  }
+}
+
+/**
  * Low-level send to a response object using the legacy SSE wire format
  * (data: <json>\n\n).
  * @param {import('http').ServerResponse} res
@@ -272,11 +317,8 @@ function safeSerialize(data) {
  */
 function send(res, payload) {
   if (!res || res.writableEnded) return;
-  const body = safeSerialize(payload);
-  try {
-    res.write(`data: ${body}\n\n`);
-  } catch (err) {
-    logger.warn(`Failed to write to SSE client: ${err.message}`);
+  const formatted = formatSSEMessage(payload);
+  if (!writeToClient(res, formatted)) {
     // Best-effort: try to end the response and remove client
     try {
       res.end();
@@ -289,11 +331,22 @@ function send(res, payload) {
 
 /**
  * Broadcast a payload to all connected clients (best-effort).
+ * V8 optimization: format once, tight monomorphic loop with isolated error handling.
  * @param {any} payload
  */
 function broadcast(payload) {
-  for (const { res } of Array.from(clients.values())) {
-    send(res, payload);
+  const formatted = formatSSEMessage(payload); // Format once (V8 inlines this)
+  const toRemove = []; // Defer removals to avoid mutation during iteration
+  
+  for (const [clientId, entry] of clients.entries()) {
+    if (!writeToClient(entry.res, formatted)) {
+      toRemove.push(clientId); // Cold path: collect failed clients
+    }
+  }
+  
+  // Remove failed clients (outside hot loop)
+  for (const id of toRemove) {
+    removeClientById(id);
   }
 }
 
@@ -303,9 +356,11 @@ function broadcast(payload) {
  * @param {any} payload
  */
 function broadcastAndClose(payload) {
-  for (const { res } of Array.from(clients.values())) {
+  const formatted = formatSSEMessage(payload);
+  
+  for (const { res } of clients.values()) {
     if (!res.writableEnded) {
-      send(res, payload);
+      writeToClient(res, formatted);
       try {
         res.end();
       } catch (err) {
@@ -334,6 +389,7 @@ export default {
   broadcast,
   broadcastAndClose,
   getClientCount,
+  formatSSEMessage,
   // expose internals for testing/inspection only
   _clients: clients,
   _resIndex: resIndex,

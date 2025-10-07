@@ -20,7 +20,13 @@
     "start:prod": "cross-env NODE_ENV=production node ./bin/www",
     "start:inspect": "cross-env  NODE_ENV=development DEBUG=server-sent-events:* node --inspect ./bin/www",
     "start:dev": "cross-env  NODE_ENV=development DEBUG=server-sent-events:*  node --watch-path=./src ./bin/www",
-    "start:dev:nodemon": "cross-env  NODE_ENV=development DEBUG=server-sent-events:* nodemon ./bin/www"
+    "start:dev:nodemon": "cross-env  NODE_ENV=development DEBUG=server-sent-events:* nodemon ./bin/www",
+    "test": "mocha test/**/*.test.js",
+    "test:watch": "mocha test/**/*.test.js --watch",
+    "test:coverage": "c8 --reporter=text --reporter=html --include=src/**/*.js mocha test/**/*.test.js",
+    "test:coverage:report": "c8 report --reporter=text",
+    "test:helper": "mocha test/sseHelper.test.js",
+    "coverage": "c8 --reporter=text --reporter=html --reporter=lcov --include=src/**/*.js mocha test/**/*.test.js"
   },
   "dependencies": {
     "axios": "^1.11.4",

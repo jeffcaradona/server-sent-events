@@ -95,11 +95,11 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Static paths
 app.use(
-  "/css/",
+  "/stylesheets/",
   express.static(path.join(__dirname, "../node_modules/bootstrap/dist/css"))
 );
 app.use(
-  "/css",
+  "/stylesheets",
   express.static(path.join(__dirname, "../node_modules/bootstrap-icons/font"))
 );
 app.use(
@@ -108,15 +108,10 @@ app.use(
 );
 
 app.use(
-  "/js",
+  "/javascripts",
   express.static(path.join(__dirname, "../node_modules/bootstrap/dist/js"))
 );
-app.use(
-  "/js",
-  express.static(path.join(__dirname, "../node_modules/axios/dist"))
-);
 
-app.use("/js", express.static(path.join(__dirname, "../node_modules/dayjs")));
 
 
 import router from "./routes/router.js";

@@ -1,0 +1,14 @@
+flowchart TD
+    S1[Server initiates shutdown] --> S2["Call broadcastAndClose(payload)"]
+    S2 --> S3[Format SSE shutdown message]
+    S3 --> S4[Loop over all clients]
+    S4 --> S5["writeToClient(res, message)"]
+    S5 --> S6{res.writableEnded?}
+    S6 -- No --> S7[Send shutdown message]
+    S7 --> S8["res.end()"]
+    S6 -- Yes --> S9[Skip client]
+    S8 --> S10[Client connection closed]
+    S9 --> S10
+    S10 --> S11[Remove client from Map]
+    S11 --> S12[Clear all clients]
+    S12 --> S13[Shutdown complete]

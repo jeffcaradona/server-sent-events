@@ -1,46 +1,30 @@
 import logger from "./../utils/logger.js"; // winston logger
+import sseHelper from "./../modules/sse/sseHelper.js";
 
-const clients = [];
-
+// Keep the legacy API surface: export `time` and `broadcastShutdown` so other
+// modules (like shutdown hooks) continue to work without changes.
 export const time = (req, res) => {
-    res.set({
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive'
-    });
-    res.flushHeaders();
+  sseHelper.initResponse(res);
+  // Prefer server-side session id as the stable client key. If not present,
+  // the helper will generate a fallback id.
+  const clientId = req?.sessionID || undefined;
+  sseHelper.addClient(clientId, res, { ip: req.ip });
 
-    clients.push(res);
+  const sendTime = () => {
+    const utc = new Date().toISOString();
+    sseHelper.send(res, { utc });
+  };
 
-    const sendTime = () => {
-        const utc = new Date().toISOString();
-        res.write(`data: ${JSON.stringify({ utc })}\n\n`);
-    };
+  sendTime();
+  const interval = setInterval(sendTime, 3000);
 
-    sendTime();
-    const interval = setInterval(sendTime, 3000);
-
-    req.on('close', () => {
-        clearInterval(interval);
-        // Remove client from list on disconnect
-        const idx = clients.indexOf(res);
-        if (idx !== -1) clients.splice(idx, 1);
-    });
+  req.on("close", () => {
+    clearInterval(interval);
+    sseHelper.removeClient(res);
+  });
 };
 
 export const broadcastShutdown = () => {
-  logger.info(`Broadcasting shutdown to ${clients.length} clients...`);
-
-  for (const res of clients) {
-    if (!res.writableEnded) {
-      try {
-        res.write(`data: ${JSON.stringify({ type: "shutdown" })}\n\n`);
-        res.end();
-      } catch (err) {
-        logger.warn(`Failed to shut down a client: ${err.message}`);
-      }
-    }
-  }
-
-  clients.length = 0;
+  logger.info(`Broadcasting shutdown to ${sseHelper.getClientCount()} clients...`);
+  sseHelper.broadcastAndClose({ type: "shutdown" });
 };

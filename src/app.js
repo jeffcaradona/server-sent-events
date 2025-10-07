@@ -137,13 +137,24 @@ app.use(function (err, req, res, next) {
 
 import { shutdownHooks } from './utils/shutdown_hooks.js';
 
+// Track if shutdown has been called to prevent duplicate execution
+let shutdownInProgress = false;
+
 // Unified shutdown function
 export async function shutdown() {
+  // Prevent duplicate shutdown calls
+  if (shutdownInProgress) {
+    return;
+  }
+  shutdownInProgress = true;
+
   try {
     logger.info("Shutdown initiated...");
 
     // Run all shutdown hooks
     await shutdownHooks.runAll(logger);
+    
+    logger.info("Shutdown hooks completed, closing logger...");
     
     // Wait for all logs to be written by explicitly closing the logger
     await new Promise((resolve) => {
@@ -151,17 +162,8 @@ export async function shutdown() {
       logger.end();
     });
   } catch (error) {
+    // Use console for error logging since logger may be closed
     console.error("Error occurred during shutdown:", error);
-    
-    // Try to log the error if logger is still functioning
-    try {
-      logger.error("Error occurred during shutdown:", error);
-      
-      // Give logger a moment to process this final error
-      await new Promise(resolve => setTimeout(resolve, 500));
-    } catch (logError) {
-      console.error("Failed to log shutdown error:", logError);
-    }
   }
 }
 

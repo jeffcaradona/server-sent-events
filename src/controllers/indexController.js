@@ -1,11 +1,11 @@
 import logger from '../utils/logger.js'; // winston logger
 
 
-const controller = {};
 
 
 
-controller.index = (req, res, next) => {
+
+export const index = (req, res, next) => {
   try {
     return res.render("index", { title: "Express" });
   } catch (error) {
@@ -14,7 +14,7 @@ controller.index = (req, res, next) => {
   }
 };
 
-controller.time = (req, res, next) => {
+export const time = (req, res, next) => {
   try {
     return res.render("time", { title: "Time" });
   } catch (error) {
@@ -22,5 +22,3 @@ controller.time = (req, res, next) => {
     return next(error);
   }
 };
-
-export default controller;

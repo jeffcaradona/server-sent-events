@@ -1,0 +1,22 @@
+flowchart TD
+    %% Client connection and lifecycle
+    subgraph Client_Lifecycle[Client Lifecycle]
+        A[Client connects] --> B["initResponse(res)"]
+        B --> C["addClient(clientId, res, meta)"]
+        C --> D["Client registered in Map and WeakMap"]
+        D --> E["Attach res.once('close') cleanup"]
+        E --> F[Client receives events]
+        F --> G[Client disconnects]
+        G --> H["removeClient(res)"]
+        H --> I[Resources released]
+    end
+
+    %% Broadcast path
+    subgraph Broadcast_Flow[Broadcast Flow]
+        J["Server triggers broadcast(payload)"] --> K[Format SSE message]
+        K --> L[Loop over clients Map]
+        L --> M["writeToClient(res, message)"]
+        M --> N{Write succeeded?}
+        N -- Yes --> O[Client receives message]
+        N -- No --> P["removeClientById(clientId)"]
+    end

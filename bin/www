@@ -99,14 +99,28 @@ function onListening() {
   serverLogger.info(`Server started and listening on ${url}`);
 }
 
+// Track if shutdown is in progress to prevent duplicate shutdowns
+let isShuttingDown = false;
+
 async function handleShutdown() {
-  serverLogger.info("Received shutdown signal, cleaning up...");
-  if (typeof shutdown === 'function') shutdown();
+  // Prevent multiple shutdown attempts
+  if (isShuttingDown) {
+    return;
+  }
+  isShuttingDown = true;
   
-  // Wait 1000ms to allow events to flush, then exit
-  setTimeout(() => {
+  serverLogger.info("Received shutdown signal, cleaning up...");
+  
+  try {
+    if (typeof shutdown === 'function') {
+      await shutdown();
+    }
+  } catch (error) {
+    console.error("Shutdown error:", error);
+  } finally {
+    // Exit after shutdown completes
     process.exit(0);
-  }, 5000); // Increased to 5000ms to ensure messages are sent
+  }
 }
 
 process.on('SIGTERM', handleShutdown);

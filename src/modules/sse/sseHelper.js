@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import logger from "../../utils/logger.js";
 
 /**
@@ -106,8 +107,9 @@ function addClient(arg1, maybeRes, maybeMeta) {
   // Backwards-compatibility: if first arg is a res object
   if (!maybeRes) {
     const res = arg1;
-    // generate a fallback id (not cryptographically strong) to keep compatibility
-    const clientId = `anon-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+    // generate a secure random id using crypto module (cryptographically strong)
+    const randomSuffix = crypto.randomBytes(3).toString('hex'); // 6 hex chars (similar length to previous implementation)
+    const clientId = `anon-${Date.now()}-${randomSuffix}`;
     clients.set(clientId, { 
       res, 
       meta: standardizeMeta({}), 

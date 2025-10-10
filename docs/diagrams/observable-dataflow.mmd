@@ -1,0 +1,32 @@
+sequenceDiagram
+    participant Server as SSE Server
+    participant ES as EventSource
+    participant Obs as Observable
+    participant Ops as Operators
+    participant Observer as Observer
+    participant UI as UI/Console
+
+    Server->>ES: SSE: onopen
+    ES->>Obs: emit {type: 'open'}
+    Obs->>Ops: filter out (not message)
+    
+    Server->>ES: SSE: onmessage
+    ES->>Obs: emit {type: 'message', event}
+    Obs->>Ops: filter → passes
+    Ops->>Ops: map → extract event
+    Ops->>Ops: map → parse JSON
+    Ops->>Ops: filter → check valid
+    Ops->>Ops: map → extract payload
+    Ops->>Observer: next(payload)
+    Observer->>UI: display data
+    
+    Server->>ES: SSE: onerror
+    ES->>Obs: emit error
+    Obs->>Observer: error(err)
+    Observer->>UI: log error
+    
+    Note over UI: User closes page
+    UI->>Observer: unsubscribe()
+    Observer->>ES: close()
+    ES->>Obs: complete()
+    Obs->>Observer: complete()

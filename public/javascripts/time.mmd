@@ -1,12 +1,43 @@
 flowchart TD
-    A[DOMContentLoaded] --> B[connect]
-    B --> C[createEventSource]
-    C --> D[attach handlers]
-    D --> E[onerror]
-    E --> F[log error]
-    D --> G[onmessage]
-    G --> H[handleTimeEvent]
-    H -->|type: shutdown| I[close connection]
-    H -->|type: utc| J[log time]
-    H -->|type: error| K[log server error]
-    H -->|invalid| L[log invalid event]
+    Start[DOMContentLoaded Event] --> CreateObs[createSSEObservable<br>/sse/time]
+    
+    CreateObs --> Pipeline{Observable Pipeline}
+    
+    Pipeline --> Filter1[filter:<br>type === 'message']
+    Filter1 --> Map1[map:<br>extract event]
+    Map1 --> Map2[map:<br>parseSSEData]
+    Map2 --> Tap1[tap:<br>log parse errors]
+    Tap1 --> Filter2[filter:<br>status === 'ok']
+    Filter2 --> Map3[map:<br>extract payload]
+    
+    Map3 --> Subscribe[subscribe]
+    
+    Subscribe --> Next{next: handle payload}
+    
+    Next -->|type: error| ErrorCase[logger.error:<br>Server error]
+    Next -->|type: shutdown| ShutdownCase[logger.log<br>+ unsubscribe]
+    Next -->|type: utc| TimeCase[logger.log:<br>Server UTC & Local time]
+    Next -->|other| WarnCase[logger.warn:<br>Unexpected format]
+    
+    Subscribe --> Error[error:<br>Connection error]
+    Subscribe --> Complete[complete:<br>Connection closed]
+    
+    Unload[beforeunload Event] --> Cleanup[subscription.unsubscribe]
+    
+    style Start fill:#e1f5ff
+    style CreateObs fill:#fff4e1
+    style Pipeline fill:#fff4e1
+    style Filter1 fill:#f0f0f0
+    style Map1 fill:#f0f0f0
+    style Map2 fill:#f0f0f0
+    style Tap1 fill:#f0f0f0
+    style Filter2 fill:#f0f0f0
+    style Map3 fill:#f0f0f0
+    style Subscribe fill:#e8f5e9
+    style Next fill:#e8f5e9
+    style TimeCase fill:#e8f5e9
+    style ErrorCase fill:#ffebee
+    style ShutdownCase fill:#f3e5f5
+    style Error fill:#ffebee
+    style Complete fill:#f3e5f5
+    style Cleanup fill:#f3e5f5

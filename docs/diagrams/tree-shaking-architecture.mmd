@@ -1,0 +1,58 @@
+---
+title: Tree-Shakeable Observable Architecture
+---
+flowchart TB
+    subgraph "Modern Bundle (Tree-Shakeable)"
+        direction TB
+        TS_Core["Observable Class<br/>(800 bytes)"]
+        TS_Create["createSSEObservable<br/>(500 bytes)"]
+        TS_Pipe["pipe utility<br/>(200 bytes)"]
+        
+        subgraph "Operators (Import Only What You Need)"
+            direction LR
+            TS_Map["map<br/>(~350 bytes)"]
+            TS_Filter["filter<br/>(~350 bytes)"]
+            TS_Tap["tap<br/>(~300 bytes)"]:::unused
+            TS_Take["take<br/>(~400 bytes)"]:::unused
+            TS_Skip["skip<br/>(~400 bytes)"]:::unused
+        end
+        
+        TS_Core --> TS_Create
+        TS_Create --> TS_Pipe
+        TS_Pipe --> TS_Map
+        TS_Pipe --> TS_Filter
+    end
+    
+    subgraph "Legacy Bundle (Monolithic)"
+        direction TB
+        M_Class["Observable Class<br/>with ALL methods<br/>(~3KB total)"]
+        M_Map["map()"]:::bundled
+        M_Filter["filter()"]:::bundled
+        M_Tap["tap()"]:::bundled
+        
+        M_Class -.->|"Always included"| M_Map
+        M_Class -.->|"Always included"| M_Filter
+        M_Class -.->|"Always included"| M_Tap
+    end
+    
+    subgraph "Your Application"
+        direction LR
+        App["import { pipe, map, filter }<br/>from 'sse-client-shakeable'"]
+    end
+    
+    App ==>|"Only imports used"| TS_Core
+    App ==>|"Tree-shaking removes"| TS_Tap
+    App ==>|"Tree-shaking removes"| TS_Take
+    App ==>|"Tree-shaking removes"| TS_Skip
+    
+    Result["Final Bundle:<br/>~1.8KB<br/>(vs 3KB)"]
+    
+    TS_Core --> Result
+    TS_Map --> Result
+    TS_Filter --> Result
+    
+    classDef unused fill:#ffcccc,stroke:#ff0000,stroke-width:2px,stroke-dasharray: 5 5
+    classDef bundled fill:#ccccff,stroke:#0000ff,stroke-width:2px
+    classDef result fill:#ccffcc,stroke:#00ff00,stroke-width:3px
+    
+    class Result result

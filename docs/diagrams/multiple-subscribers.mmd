@@ -1,0 +1,27 @@
+graph TB
+    SSE[SSE Observable<br>/sse/time]
+    
+    Filter[filter: messages only]
+    Parse[map: parse JSON]
+    
+    Sub1[Subscriber 1<br>Console Logger]
+    Sub2[Subscriber 2<br>UI Updater]
+    Sub3[Subscriber 3<br>Analytics]
+    
+    SSE --> Filter
+    Filter --> Parse
+    
+    Parse --> Sub1
+    Parse --> Sub2
+    Parse --> Sub3
+    
+    Sub1 --> Console[console.log]
+    Sub2 --> DOM[Update DOM]
+    Sub3 --> Track[Track Event]
+    
+    style SSE fill:#e1f5ff
+    style Filter fill:#fff4e1
+    style Parse fill:#fff4e1
+    style Sub1 fill:#e8f5e9
+    style Sub2 fill:#e8f5e9
+    style Sub3 fill:#e8f5e9

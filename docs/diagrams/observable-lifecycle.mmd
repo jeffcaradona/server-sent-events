@@ -1,0 +1,29 @@
+stateDiagram-v2
+    [*] --> Created: new Observable()
+    Created --> Subscribed: subscribe(observer)
+    
+    Subscribed --> Emitting: observer.next()
+    Emitting --> Emitting: more values
+    
+    Emitting --> Error: observer.error()
+    Emitting --> Completed: observer.complete()
+    Emitting --> Unsubscribed: unsubscribe()
+    
+    Error --> [*]
+    Completed --> [*]
+    Unsubscribed --> [*]
+    
+    note right of Subscribed
+        EventSource connects
+        Operators chain created
+    end note
+    
+    note right of Emitting
+        Values flow through
+        operator pipeline
+    end note
+    
+    note right of Unsubscribed
+        EventSource closes
+        Cleanup functions run
+    end note

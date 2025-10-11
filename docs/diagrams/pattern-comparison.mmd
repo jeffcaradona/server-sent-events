@@ -1,0 +1,26 @@
+graph LR
+    subgraph "Old Pattern: Effect-Based"
+        A1[SSE Event] --> B1[eventHandler]
+        B1 --> C1[Generate Effects Array]
+        C1 --> D1[Execute Each Effect]
+        D1 --> E1[Side Effects]
+    end
+    
+    subgraph "New Pattern: Observable"
+        A2[SSE Event] --> B2[Observable]
+        B2 --> C2[Operators Pipeline]
+        C2 --> D2[Subscribe]
+        D2 --> E2[Observer Callbacks]
+    end
+    
+    style A1 fill:#ffebee
+    style B1 fill:#ffebee
+    style C1 fill:#ffebee
+    style D1 fill:#ffebee
+    style E1 fill:#ffebee
+    
+    style A2 fill:#e8f5e9
+    style B2 fill:#e8f5e9
+    style C2 fill:#e8f5e9
+    style D2 fill:#e8f5e9
+    style E2 fill:#e8f5e9

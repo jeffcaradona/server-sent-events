@@ -1,0 +1,11 @@
+graph LR
+    Input[Input Stream<br>1,2,3,4,5] --> Filter[filter: x > 2]
+    Filter --> |3,4,5| Map[map: x * 2]
+    Map --> |6,8,10| Filter2[filter: x < 10]
+    Filter2 --> |6,8| Output[Output<br>6,8]
+    
+    style Input fill:#e1f5ff
+    style Filter fill:#fff4e1
+    style Map fill:#fff4e1
+    style Filter2 fill:#fff4e1
+    style Output fill:#e8f5e9

@@ -1,10 +1,12 @@
-# Observable Pattern - Architecture Diagrams
+# Architecture Diagrams
 
-This directory contains Mermaid diagrams illustrating the Observable pattern implementation for SSE.
+This directory contains all Mermaid diagrams for both client-side and server-side architecture.
 
-## Diagrams
+## 📊 Diagrams Index
 
-### 1. Observable Architecture (`observable-architecture.mmd`)
+### Client-Side (Observable Pattern)
+
+#### 1. Observable Architecture (`observable-architecture.mmd`)
 **Main architecture diagram** showing the complete flow from SSE server through EventSource, Observable, Operators, to Observer.
 
 - Shows the component structure
@@ -12,7 +14,7 @@ This directory contains Mermaid diagrams illustrating the Observable pattern imp
 - Highlights operator pipeline
 - Demonstrates subscription lifecycle
 
-### 2. Observable Data Flow (`observable-dataflow.mmd`)
+#### 2. Observable Data Flow (`observable-dataflow.mmd`)
 **Sequence diagram** showing the temporal flow of events from server to UI.
 
 - SSE connection lifecycle (open, message, error)
@@ -20,21 +22,21 @@ This directory contains Mermaid diagrams illustrating the Observable pattern imp
 - Observer callbacks
 - Cleanup on unsubscribe
 
-### 3. Pattern Comparison (`pattern-comparison.mmd`)
+#### 3. Pattern Comparison (`pattern-comparison.mmd`)
 **Side-by-side comparison** of the old effect-based pattern vs. new Observable pattern.
 
 - Highlights architectural differences
 - Shows code organization improvements
 - Visual contrast between approaches
 
-### 4. Multiple Subscribers (`multiple-subscribers.mmd`)
+#### 4. Multiple Subscribers (`multiple-subscribers.mmd`)
 **Fan-out pattern** demonstrating how one Observable can serve multiple subscribers.
 
 - Shared data stream
 - Independent consumers (UI, analytics, logging)
 - Demonstrates composability
 
-### 5. Observable Lifecycle (`observable-lifecycle.mmd`)
+#### 5. Observable Lifecycle (`observable-lifecycle.mmd`)
 **State diagram** showing Observable lifecycle states and transitions.
 
 - Creation → Subscription → Emission
@@ -42,13 +44,56 @@ This directory contains Mermaid diagrams illustrating the Observable pattern imp
 - Completion and cleanup
 - State annotations
 
-### 6. Operator Chaining (`operator-chaining.mmd`)
+#### 6. Operator Chaining (`operator-chaining.mmd`)
 **Data transformation pipeline** showing how operators transform values.
 
 - Input stream example
 - Filter and map operations
 - Intermediate values
 - Final output
+
+#### 7. Client Time Flow (`client-time-flow.mmd`)
+**Implementation flowchart** for the time.js client showing the Observable pattern in practice.
+
+- DOMContentLoaded event handling
+- Observable pipeline setup
+- Operator chain (filter → map → tap)
+- Observer callbacks (next, error, complete)
+- Cleanup on page unload
+
+### Server-Side (SSE Implementation)
+
+#### 8. Server SSE Architecture (`server-sse-architecture.mmd`)
+**Server-side SSE helper architecture** showing how the server manages SSE connections.
+
+- Connection management
+- Event broadcasting
+- Client tracking
+- Graceful shutdown
+
+#### 9. Server SSE Lifecycle (`server-sse-lifecycle.mmd`)
+**Broadcast lifecycle diagram** showing how events are sent to multiple clients.
+
+- Event creation
+- Broadcasting to all clients
+- Individual client delivery
+- Connection state management
+
+#### 10. Server SSE Shutdown (`server-sse-shutdown.mmd`)
+**Graceful shutdown process** for SSE connections.
+
+- Shutdown signal handling
+- Client notification
+- Connection cleanup
+- Resource disposal
+
+#### 11. Server Hooks (`server-hooks.mmd`)
+**Server hook system** for extensibility and lifecycle management.
+
+- Hook registration
+- Hook execution
+- Pre/post processing
+- Plugin architecture
 
 ## Viewing Diagrams
 

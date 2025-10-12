@@ -325,4 +325,3 @@ describe('SSE Observable Integration', () => {
   });
 });
 
-console.log('All tests completed!');

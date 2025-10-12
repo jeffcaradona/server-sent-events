@@ -5,3 +5,4 @@
 - Do not assume the user's knowledge level; provide clear explanations for new concepts, either inline or as comments.
 - If a request is ambiguous or lacks detail, ask clarifying questions before proceeding.
 - Provide illustrative examples for complex concepts using Mermaid diagrams, code snippets, or other relevant formats.
+- When writing documentation especially markdown, make sure code is valid, properly formatted, and properly rendered. Understand the file format requirements, for example .mmd files are raw Mermaid, not markdown code blocks.

@@ -1,0 +1,55 @@
+graph TB
+    subgraph "SSE Server"
+        Server[SSE Endpoint<br>/sse/time]
+    end
+
+    subgraph "Browser - Observable Pattern"
+        ES[EventSource]
+        Obs[Observable]
+        
+        subgraph "Operators Pipeline"
+            Filter1[filter: type === 'message']
+            Map1[map: extract event]
+            Map2[map: parseSSEData]
+            Filter2[filter: status === 'ok']
+            Map3[map: extract payload]
+        end
+        
+        subgraph "Observer"
+            Next[next: process data]
+            Error[error: handle errors]
+            Complete[complete: cleanup]
+        end
+        
+        Sub[Subscription]
+    end
+
+    Server -->|SSE Events| ES
+    ES -->|wrap| Obs
+    
+    Obs --> Filter1
+    Filter1 --> Map1
+    Map1 --> Map2
+    Map2 --> Filter2
+    Filter2 --> Map3
+    
+    Map3 --> Next
+    Obs -.error.-> Error
+    Obs -.complete.-> Complete
+    
+    Next -.subscription.-> Sub
+    Error -.subscription.-> Sub
+    Complete -.subscription.-> Sub
+    
+    Sub -->|unsubscribe| ES
+
+    style Server fill:#e1f5ff
+    style Obs fill:#fff4e1
+    style Filter1 fill:#f0f0f0
+    style Map1 fill:#f0f0f0
+    style Map2 fill:#f0f0f0
+    style Filter2 fill:#f0f0f0
+    style Map3 fill:#f0f0f0
+    style Next fill:#e8f5e9
+    style Error fill:#ffebee
+    style Complete fill:#f3e5f5

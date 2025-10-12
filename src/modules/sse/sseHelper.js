@@ -125,7 +125,8 @@ function addClient(arg1, maybeRes, maybeMeta) {
         removeClient(res);
       });
     } catch (e) {
-      // ignore — defensive in case res is not an EventEmitter-like object
+      // Defensive in case res is not an EventEmitter-like object
+      logger.debug(`Failed to attach close handler to response: ${e.message}`);
     }
 
     return clientId;
@@ -141,11 +142,11 @@ function addClient(arg1, maybeRes, maybeMeta) {
     // Attempt to remove the old entry cleanly
     try {
       const old = clients.get(existing);
-      if (old && old.res && !old.res.writableEnded) {
+      if (old?.res && !old.res.writableEnded) {
         // don't force-close here; just drop the mapping
       }
     } catch (e) {
-      // ignore
+      logger.debug(`Error checking old client entry: ${e.message}`);
     }
     clients.delete(existing);
   }
@@ -162,7 +163,7 @@ function addClient(arg1, maybeRes, maybeMeta) {
       removeClient(res);
     });
   } catch (e) {
-    // ignore
+    logger.debug(`Failed to attach close handler to response: ${e.message}`);
   }
 
   return clientId;
@@ -181,7 +182,7 @@ function removeClient(res) {
       try {
         if (!entry.res.writableEnded) entry.res.end();
       } catch (err) {
-        // ignore
+        logger.debug(`Failed to end response for client: ${err.message}`);
       }
     }
     clients.delete(clientId);
@@ -189,7 +190,7 @@ function removeClient(res) {
     try {
       resIndex.delete(res);
     } catch (e) {
-      // ignore
+      logger.debug(`Failed to delete from resIndex: ${e.message}`);
     }
   }
 }
@@ -205,7 +206,7 @@ function removeClientById(clientId) {
   try {
     if (entry.res && !entry.res.writableEnded) entry.res.end();
   } catch (e) {
-    // ignore
+    logger.debug(`Failed to end response for client ${clientId}: ${e.message}`);
   }
   // delete from clients map
   clients.delete(clientId);
@@ -213,7 +214,7 @@ function removeClientById(clientId) {
   try {
     if (entry.res) resIndex.delete(entry.res);
   } catch (e) {
-    // ignore
+    logger.debug(`Failed to delete from resIndex for client ${clientId}: ${e.message}`);
   }
 }
 
@@ -227,7 +228,7 @@ function removeClientById(clientId) {
  */
 function sendToClient(clientId, payload) {
   const entry = clients.get(clientId);
-  if (!entry || !entry.res) return false;
+  if (!entry?.res) return false;
   const { res } = entry;
   if (res.writableEnded) {
     // Clean up stale entry
@@ -259,7 +260,7 @@ function cleanupStaleClients(maxAgeMs = 1000 * 60 * 60) {
         removeClientById(clientId);
       }
     } catch (e) {
-      // ignore per-entry errors
+      logger.debug(`Error processing client ${clientId} during cleanup: ${e.message}`);
       removeClientById(clientId);
     }
   }
@@ -325,7 +326,7 @@ function send(res, payload) {
     try {
       res.end();
     } catch (e) {
-      // ignore
+      logger.debug(`Failed to end response after write failure: ${e.message}`);
     }
     removeClient(res);
   }

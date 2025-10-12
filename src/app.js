@@ -27,6 +27,8 @@ logger.info(`[APP] info.name: ${info.name}, info.version: ${info.version}`);
 
 const app = express();
 
+app.disable("x-powered-by"); // security best practice
+
 // Create the application object in locals for holding a connection pool
 
 // view engine setup

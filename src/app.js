@@ -11,9 +11,12 @@ import crypto from "node:crypto"; // For generating secure random values
 import morgan from "morgan";
 import logger, { morganStream } from "./utils/logger.js"; // winston logger
 
+
 // Load environment variables (ensure this is done before using process.env)
 import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
+
+import { debugApplication } from "./utils/debug.js";
 
 //  Explicitly create __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -38,12 +41,14 @@ app.set("view engine", "ejs");
 
 
 if (process.env.NODE_ENV === "production") {
+  debugApplication("Setting up morgan for production logging");
   app.use(
     morgan("combined", {
       stream: morganStream
     })
   );
 } else {
+  debugApplication("Setting up morgan for development logging");
   app.use(morgan("dev")); // color-coded, short, easy for dev
 }
 

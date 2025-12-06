@@ -12,3 +12,5 @@ const debugApplication = debug(`${moduleName}:application`);
 const debugRoutes = debug(`${moduleName}:routes`);
 
 const debugControllers = debug(`${moduleName}:controllers`);
+
+export { debug, debugServer, debugApplication, debugRoutes, debugControllers };

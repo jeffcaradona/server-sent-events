@@ -17,7 +17,6 @@ import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
 
 import { debugApplication } from "./utils/debug.js";
-const debug = debugApplication;
 
 //  Explicitly create __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -42,14 +41,14 @@ app.set("view engine", "ejs");
 
 
 if (process.env.NODE_ENV === "production") {
-  debug('Setting up morgan for production logging');
+  debugApplication("Setting up morgan for production logging");
   app.use(
     morgan("combined", {
       stream: morganStream
     })
   );
 } else {
-  debug('Setting up morgan for development logging');
+  debugApplication("Setting up morgan for development logging");
   app.use(morgan("dev")); // color-coded, short, easy for dev
 }
 

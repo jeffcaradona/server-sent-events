@@ -7,7 +7,7 @@ import { configDotenv } from 'dotenv';
 
 import app, { shutdown } from '../src/app.js';
 import {debugServer} from "../src/utils/debug.js";
-const debug = debugServer;
+
 import http from 'http'
 import { serverLogger } from '../src/utils/logger.js'; // winston logger
 
@@ -92,8 +92,8 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   const url = `http://localhost:${addr.port}`;
-  debug('Listening on ' + bind);
-  debug(`Server is running at ${url}`);
+  debugServer("Listening on " + bind);
+  debugServer(`Server is running at ${url}`);
   
   // Add server startup log
   serverLogger.info(`Server started and listening on ${url}`);

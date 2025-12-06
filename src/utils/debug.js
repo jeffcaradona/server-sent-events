@@ -3,24 +3,12 @@ import debugLib from "debug";
 const debug = (namespace) => debugLib(namespace); 
 
 
-let subsystem = "";
+const moduleName = "server-sent-events";
 
+const debugServer = debug(`${moduleName}:server`);
 
-const module = "server-sent-events";
+const debugApplication = debug(`${moduleName}:application`);
 
-subsystem = "server";
-const debugServer = debug(`${module}:${subsystem}`);
+const debugRoutes = debug(`${moduleName}:routes`);
 
-subsystem = "application";
-const debugApplication = debug(`${module}:${subsystem}`);
-
-subsystem = "routes";
-const debugRoutes = debug(`${module}:${subsystem}`);
-
-subsystem = "controllers";
-const debugControllers = debug(`${module}:${subsystem}`);
-
-export { debugServer, debugApplication, debugRoutes, debugControllers };
-
-export default debug; 
-
+const debugControllers = debug(`${moduleName}:controllers`);

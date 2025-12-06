@@ -6,10 +6,10 @@
 import { configDotenv } from 'dotenv';
 
 import app, { shutdown } from '../src/app.js';
-import debugLib from 'debug';
-const debug = debugLib("server-sent-events:server");
+import {debugServer} from "../src/utils/debug.js";
+const debug = debugServer;
 import http from 'http'
-import logger, { serverLogger } from '../src/utils/logger.js'; // winston logger
+import { serverLogger } from '../src/utils/logger.js'; // winston logger
 
 
 configDotenv();
